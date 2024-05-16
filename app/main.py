@@ -2,33 +2,40 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
+from uvicorn import run
+from tensorflow.keras.models import load_model
+import os
 import numpy as np
 from io import BytesIO
 from PIL import Image
 import tensorflow as tf
 app = FastAPI()
-origins = [
-    "http://localhost",
-    "http://localhost:3000",
-]
+
+origins = ["*"]
+methods = ["*"]
+headers = ["*"]
+
 app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    CORSMiddleware, 
+    allow_origins = origins,
+    allow_credentials = True,
+    allow_methods = methods,
+    allow_headers = headers    
 )
 
 
-MODEL = tf.keras.models.load_model("./saved_models/1")
+MODEL = load_model("./model/strawberry-model.h5")
 CLASS_NAMES = ["Strawberry Late Blight ","Strawberry Healty"]
 
 
 
 def read_file_as_image(data) -> np.ndarray:
-    image = np.array(Image.open(BytesIO(data)))
-    return image
+    # Open the image file
+    image = Image.open(BytesIO(data))
+    # Resize the image
+    image = image.resize((256, 256))
+    # Convert the image to a NumPy array
+    return np.array(image)
 
 @app.post("/predict")
 async def predict(
@@ -57,4 +64,5 @@ async def ping():
     return "Hello worldd"
 
 if __name__ == "__main__":
-    uvicorn.run(app, host='localhost', port=8000)
+	port = int(os.environ.get('PORT', 8000))
+	run(app, host="0.0.0.0", port=port)
