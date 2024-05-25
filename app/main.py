@@ -27,8 +27,6 @@ app.add_middleware(
 MODEL = load_model("./model/strawberry-model.h5")
 CLASS_NAMES = ["Strawberry Late Blight ","Strawberry Healty"]
 
-
-
 def read_file_as_image(data) -> np.ndarray:
     # Open the image file
     image = Image.open(BytesIO(data))
